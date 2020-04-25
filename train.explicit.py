@@ -17,16 +17,16 @@ class Args(object):
         self.epochs = 100
         self.batch_size = 256
         self.num_asp = 18 # ml:18
-        self.e_dim = 80
+        self.e_dim = 120
         # self.mlp_dim = [64, 32, 16]
         self.reg = 1e-1
         self.bias_reg = 3e-3
-        self.asp_reg = 3e-3
+        self.asp_reg = 5e-3 #5e-3
         # self.num_neg = 4
         self.lr = 7e-3
         self.bias_lr = 7e-3
         self.asp_lr = 7e-2
-        self.lambda1 = 3e-2 # 5e-2
+        self.lambda1 = 5e-2 # 5e-2
         # self.loss_weights = [1, 1, 1]
 
 

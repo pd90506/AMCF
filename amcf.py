@@ -34,14 +34,14 @@ class AMCF(nn.Module):
         asp_latent = self.asp_emb(asp) # [batch_size, num_asp, e_dim]
         # asp_weight = torch.bmm(asp_latent, item_latent.unsqueeze(-1)) # [batch, num_asp, 1]
         # asp_weight = F.softmax(asp_weight, dim=1)
-        asp_weight = F.sigmoid(self.mlp(detached_item_latent)).unsqueeze(-1)
+        asp_weight = F.softmax(self.mlp(detached_item_latent), dim=-1).unsqueeze(-1)
         item_asp = torch.bmm(asp_latent.permute(0,2,1), asp_weight).squeeze(-1)
         
         # cosine similarity between item_latent and item_asp
         # sim = - F.cosine_similarity(item_asp, detached_item_latent, dim=-1)
 
         # Euclidian distance
-        sim = self.pdist(item_asp, detached_item_latent)
+        sim = self.pdist(item_asp, detached_item_latent) # alternative
 
         # get preference output [num_asp]
         user_latent = user_latent.unsqueeze(-1)
@@ -55,7 +55,10 @@ class AMCF(nn.Module):
         user_latent = user_latent.unsqueeze(1).expand(-1, self.num_asp, -1)
         # virtual item latent
         batch_size = x.shape[0]
-        dummy_asp = torch.ones([batch_size, self.num_asp]).cuda()
+        if torch.cuda.is_available():
+            dummy_asp = torch.ones([batch_size, self.num_asp]).cuda()
+        else:
+            dummy_asp = torch.ones([batch_size, self.num_asp])
         item_latent = self.asp_emb(dummy_asp) # [batch, num_asp, e_dim]
         user_latent = user_latent.reshape(-1, self.e_dim)
         item_latent = item_latent.reshape(-1, self.e_dim)
@@ -96,8 +99,8 @@ class Aspect_emb(nn.Module):
         x = x.reshape([x.shape[0], x.shape[1], 1])
         x = x.expand(-1, -1, self.W.shape[1])
         asp_latent = torch.mul(x, self.W) # [batch_size, num_asp, e_dim]
-        # we must normalize asp_latent per aspect
-        asp_latent = F.normalize(asp_latent, p=2, dim=2)
+        # we can optionally normalize asp_latent per aspect
+        # asp_latent = F.normalize(asp_latent, p=2, dim=2) #
         
 
         return asp_latent
