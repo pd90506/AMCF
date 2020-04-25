@@ -34,7 +34,7 @@ class AMCF(nn.Module):
         asp_latent = self.asp_emb(asp) # [batch_size, num_asp, e_dim]
         # asp_weight = torch.bmm(asp_latent, item_latent.unsqueeze(-1)) # [batch, num_asp, 1]
         # asp_weight = F.softmax(asp_weight, dim=1)
-        asp_weight = F.softmax(self.mlp(detached_item_latent), dim=-1).unsqueeze(-1)
+        asp_weight = F.sigmoid(self.mlp(detached_item_latent)).unsqueeze(-1)
         item_asp = torch.bmm(asp_latent.permute(0,2,1), asp_weight).squeeze(-1)
         
         # cosine similarity between item_latent and item_asp

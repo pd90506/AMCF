@@ -13,7 +13,7 @@ class Args(object):
     """Used to generate different sets of arguments"""
     def __init__(self):
         self.path = 'Data/'
-        self.dataset = '100k' # '100k', '1m'， 'ciao'
+        self.dataset = '100k' # '100k', '1m'， 'ymovie'
         self.epochs = 100
         self.batch_size = 256
         self.num_asp = 18 # ml:18
@@ -21,7 +21,7 @@ class Args(object):
         # self.mlp_dim = [64, 32, 16]
         self.reg = 1e-1
         self.bias_reg = 3e-3
-        self.asp_reg = 5e-3
+        self.asp_reg = 3e-3
         # self.num_neg = 4
         self.lr = 7e-3
         self.bias_lr = 7e-3
@@ -62,7 +62,7 @@ def train(model, trainloader, testloader, evaluator, optimizer, criterion, devic
             loss.backward()
             optimizer.step()
             # collect running losses
-            running_loss += (mse_loss - (args.lambda1 * sim_loss)).data
+            running_loss += (mse_loss + (args.lambda1 * sim_loss)).data
             running_mse_loss += mse_loss.data
             running_sim_loss += sim_loss.data
         # total loss
@@ -129,6 +129,9 @@ def test(model, testloader, evaluator, criterion, device, args):
         elif args.dataset == '1m':
             users = torch.tensor(range(6040), dtype=torch.long).to(device)
             u_pred = model.predict_pref(users)
+        elif args.dataset == 'ymovie':
+            users = torch.tensor(range(7642), dtype=torch.long).to(device)
+            u_pred = model.predict_pref(users)
         else:
             raise Exception("cannot handle right now!!!")
 
@@ -159,13 +162,13 @@ def main():
     # determine data size
     if args.dataset == '1m':
         num_users = 6040
-        num_items = 3952  # need modification
+        num_items = 3952  
     elif args.dataset == '100k':
         num_users = 943
         num_items = 1682
-    elif args.dataset == 'ciao':
-        num_users = 17615
-        num_items = 16121
+    elif args.dataset == 'ymovie':
+        num_users = 7643
+        num_items = 11916
 
     # data_loaders contains all K-Fold train_loaders and test_loaders
     data_loaders = get_data(size=args.dataset, batch_size=args.batch_size)
